@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 7%;
+    --foreground: 0 0% 100%;
+    --card: 222 30% 12%;
+    --card-foreground: 0 0% 100%;
+    --popover: 222 30% 12%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 172 56% 56%;
+    --primary-foreground: 222 47% 7%;
+    --secondary: 217 19% 27%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 217 19% 18%;
+    --muted-foreground: 220 9% 65%;
+    --accent: 172 56% 56%;
+    --accent-foreground: 222 47% 7%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 217 19% 18%;
+    --input: 217 19% 18%;
+    --ring: 172 56% 56%;
+    --radius: 0.75rem;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-fnc-dark text-fnc-text;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-serif;
+  }
+}
+
+@layer utilities {
+  .fnc-eyebrow {
+    @apply font-sans text-xs uppercase tracking-[0.25em] text-fnc-teal-muted;
+  }
+  .fnc-divider {
+    @apply h-px w-full bg-fnc-divider;
+  }
+}
