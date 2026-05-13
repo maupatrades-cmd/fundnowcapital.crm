@@ -24,3 +24,5 @@ pnpm-debug.log*
 .vercel
 .turbo
 coverage
+.tsc-node
+*.tsbuildinfo
