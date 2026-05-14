@@ -37,7 +37,10 @@ async function loadProfile(userId: string): Promise<Profile | null> {
     .select("id, role, full_name, email")
     .eq("id", userId)
     .maybeSingle();
-  if (error) return null;
+  if (error) {
+    console.warn("[auth] profile load failed:", error.message);
+    return null;
+  }
   return (data as Profile) ?? null;
 }
 
@@ -49,19 +52,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!mounted) return;
-      setSession(data.session);
-      if (data.session?.user) {
-        setProfile(await loadProfile(data.session.user.id));
-      }
-      setLoading(false);
-    });
+    // Hard timeout: never let the app sit on "Loading session…" longer than 5s.
+    const timeout = window.setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 5000);
 
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, s) => {
+    // Resolve loading as soon as we know whether a session exists.
+    // Profile load happens in the background — it MUST NOT block loading state.
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (!mounted) return;
+        setSession(data.session);
+        setLoading(false);
+        window.clearTimeout(timeout);
+        if (data.session?.user) {
+          // fire-and-forget
+          loadProfile(data.session.user.id).then((p) => {
+            if (mounted) setProfile(p);
+          });
+        }
+      })
+      .catch((e) => {
+        console.warn("[auth] getSession failed:", e);
+        if (mounted) setLoading(false);
+        window.clearTimeout(timeout);
+      });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      if (!mounted) return;
       setSession(s);
       if (s?.user) {
-        setProfile(await loadProfile(s.user.id));
+        loadProfile(s.user.id).then((p) => {
+          if (mounted) setProfile(p);
+        });
       } else {
         setProfile(null);
       }
@@ -69,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mounted = false;
+      window.clearTimeout(timeout);
       sub.subscription.unsubscribe();
     };
   }, []);
@@ -85,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       options: { data: { full_name: fullName, role: "client" } },
     });
     if (error) return { error: error.message, needsConfirm: false };
-    const needsConfirm = !data.session; // email confirmation required
+    const needsConfirm = !data.session;
     return { error: null, needsConfirm };
   };
 
