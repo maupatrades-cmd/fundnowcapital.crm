@@ -1,28 +1,49 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ChevronLeft, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/forms/Field";
 import { supabase } from "@/lib/supabase";
+import { OverviewTab, type LeadOverview } from "@/pages/LeadDetailTabs/OverviewTab";
+import { DocumentsTab } from "@/pages/LeadDetailTabs/DocumentsTab";
+import { SubmissionsTab } from "@/pages/LeadDetailTabs/SubmissionsTab";
+import { CommissionTab } from "@/pages/LeadDetailTabs/CommissionTab";
+import { TasksTab } from "@/pages/LeadDetailTabs/TasksTab";
+import { MessagesTab } from "@/pages/LeadDetailTabs/MessagesTab";
+import { ActivityTab } from "@/pages/LeadDetailTabs/ActivityTab";
 
-type LeadDetailRow = {
-  id: string;
-  ref_code: string;
-  funding_amount: number;
-  funding_type: string;
-  funding_purpose: string | null;
-  status: string;
-  priority: string;
-  notes: string | null;
-  created_at: string;
-  client_id: string | null;
-  business_id: string | null;
-};
+const TAB_KEYS = [
+  "overview",
+  "documents",
+  "submissions",
+  "commission",
+  "tasks",
+  "messages",
+  "activity",
+] as const;
+type TabKey = (typeof TAB_KEYS)[number];
+
+const TABS: { key: TabKey; label: string }[] = [
+  { key: "overview", label: "Overview" },
+  { key: "documents", label: "Documents" },
+  { key: "submissions", label: "Submissions" },
+  { key: "commission", label: "Commission" },
+  { key: "tasks", label: "Tasks" },
+  { key: "messages", label: "Messages" },
+  { key: "activity", label: "Activity" },
+];
+
+function isTabKey(v: string | null): v is TabKey {
+  return v !== null && (TAB_KEYS as readonly string[]).includes(v);
+}
 
 export function LeadDetail() {
   const { id } = useParams<{ id: string }>();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const justCreated = params.get("created");
-  const [lead, setLead] = useState<LeadDetailRow | null>(null);
+  const tabParam = params.get("tab");
+  const activeTab: TabKey = isTabKey(tabParam) ? tabParam : "overview";
+
+  const [overview, setOverview] = useState<LeadOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,17 +52,43 @@ export function LeadDetail() {
       if (!id) return;
       const { data, error } = await supabase
         .from("leads")
-        .select("*")
+        .select(
+          `
+          id, ref_code, status, priority, source,
+          funding_type, funding_amount, funding_purpose,
+          urgency, preferred_term_months, notes,
+          created_at, updated_at,
+          client:profiles!leads_client_id_fkey (
+            id, full_name, email, phone, province, marital_status, physical_address
+          ),
+          business:businesses!leads_business_id_fkey (
+            id, registered_name, trading_name, cipc_number, vat_number,
+            industry, province, city, trading_address, operating_address,
+            date_business_started, years_trading,
+            monthly_turnover, annual_turnover, monthly_net_profit, num_employees,
+            bank_name, account_type, account_holder_name, bank_branch_code,
+            has_existing_finance, existing_finance_lender, existing_finance_balance, existing_finance_monthly
+          )
+        `,
+        )
         .eq("id", id)
         .maybeSingle();
       if (cancelled) return;
       if (error) setError(error.message);
-      else setLead(data as LeadDetailRow | null);
+      else setOverview(data as unknown as LeadOverview | null);
     })();
     return () => {
       cancelled = true;
     };
   }, [id]);
+
+  const setTab = (key: TabKey) => {
+    const next = new URLSearchParams(params);
+    next.set("tab", key);
+    setParams(next, { replace: true });
+  };
+
+  const headerRef = useMemo(() => overview?.ref_code ?? "", [overview]);
 
   return (
     <div className="space-y-6 p-6">
@@ -77,40 +124,83 @@ export function LeadDetail() {
         </div>
       )}
 
-      {lead ? (
-        <div className="rounded-xl border border-fnc-border bg-fnc-dark-card p-6">
-          <p className="fnc-eyebrow">Lead</p>
-          <h2 className="mt-1 font-serif text-2xl text-fnc-text">
-            <span className="font-mono text-fnc-teal">{lead.ref_code}</span>
-          </h2>
-          <div className="fnc-divider my-4" />
-          <dl className="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
-            <Row k="Funding type" v={lead.funding_type.replace(/_/g, " ")} />
-            <Row k="Amount" v={new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(lead.funding_amount)} />
-            <Row k="Status" v={lead.status.replace(/_/g, " ")} />
-            <Row k="Priority" v={lead.priority} />
-            <Row k="Purpose" v={lead.funding_purpose ?? "—"} wide />
-            <Row k="Notes" v={lead.notes ?? "—"} wide />
-            <Row k="Created" v={new Date(lead.created_at).toLocaleString("en-ZA")} />
-          </dl>
-          <p className="mt-6 text-xs text-fnc-text-muted">
-            Full lead detail (tabs: Overview, Documents, Submissions, Commission, Tasks, Messages, Activity) coming in the next step.
-          </p>
-        </div>
-      ) : (
-        <div className="rounded-xl border border-fnc-border bg-fnc-dark-card p-10">
-          <div className="h-4 w-32 animate-pulse rounded bg-white/5" />
-        </div>
-      )}
-    </div>
-  );
-}
+      {/* Header */}
+      <div className="rounded-xl border border-fnc-border bg-fnc-dark-card p-6">
+        {overview ? (
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="fnc-eyebrow">Lead</p>
+              <h2 className="mt-1 font-serif text-2xl text-fnc-text">
+                <span className="font-mono text-fnc-teal">{headerRef}</span>
+                {overview.business?.registered_name && (
+                  <span className="ml-3 text-fnc-text-muted">·</span>
+                )}
+                {overview.business?.registered_name && (
+                  <span className="ml-3 italic">{overview.business.registered_name}</span>
+                )}
+              </h2>
+              <p className="mt-1 text-sm text-fnc-text-muted">
+                {overview.funding_type.replace(/_/g, " ")} ·{" "}
+                {new Intl.NumberFormat("en-ZA", {
+                  style: "currency",
+                  currency: "ZAR",
+                  maximumFractionDigits: 0,
+                }).format(overview.funding_amount)}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <span className="inline-block rounded-full border border-fnc-teal/40 px-2.5 py-0.5 text-[10px] uppercase tracking-widest text-fnc-teal">
+                {overview.status.replace(/_/g, " ")}
+              </span>
+              <span className="inline-block rounded-full border border-fnc-border px-2.5 py-0.5 text-[10px] uppercase tracking-widest text-fnc-text-muted">
+                {overview.priority}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="h-6 w-48 animate-pulse rounded bg-white/5" />
+        )}
+      </div>
 
-function Row({ k, v, wide }: { k: string; v: string; wide?: boolean }) {
-  return (
-    <div className={wide ? "md:col-span-2" : undefined}>
-      <dt className="fnc-eyebrow">{k}</dt>
-      <dd className="mt-1 text-fnc-text">{v}</dd>
+      {/* Tabs */}
+      <div className="border-b border-fnc-border">
+        <nav className="-mb-px flex flex-wrap gap-1">
+          {TABS.map((t) => {
+            const active = t.key === activeTab;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={
+                  "border-b-2 px-4 py-2.5 text-sm transition-colors " +
+                  (active
+                    ? "border-fnc-teal text-fnc-teal"
+                    : "border-transparent text-fnc-text-muted hover:text-fnc-text")
+                }
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Tab content */}
+      <div>
+        {activeTab === "overview" && <OverviewTab overview={overview} />}
+        {activeTab === "documents" && id && (
+          <DocumentsTab
+            leadId={id}
+            clientId={overview?.client?.id ?? null}
+            businessId={overview?.business?.id ?? null}
+          />
+        )}
+        {activeTab === "submissions" && id && <SubmissionsTab leadId={id} />}
+        {activeTab === "commission" && id && <CommissionTab leadId={id} />}
+        {activeTab === "tasks" && id && <TasksTab leadId={id} />}
+        {activeTab === "messages" && id && <MessagesTab leadId={id} />}
+        {activeTab === "activity" && id && <ActivityTab leadId={id} />}
+      </div>
     </div>
   );
 }
