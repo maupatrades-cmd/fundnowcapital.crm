@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLocation, Link } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -13,25 +13,23 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
-type NavKey =
-  | "dashboard"
-  | "leads"
-  | "funders"
-  | "calendar"
-  | "commission"
-  | "tasks"
-  | "consultants"
-  | "settings";
+type NavItem = {
+  to: string;
+  label: string;
+  Icon: typeof LayoutDashboard;
+  // match returns true if pathname is "active" for this item
+  match: (pathname: string) => boolean;
+};
 
-const navItems: { key: NavKey; label: string; Icon: typeof LayoutDashboard }[] = [
-  { key: "dashboard", label: "Dashboard", Icon: LayoutDashboard },
-  { key: "leads", label: "Leads", Icon: Users },
-  { key: "funders", label: "Funders", Icon: Building2 },
-  { key: "calendar", label: "Calendar", Icon: Calendar },
-  { key: "commission", label: "Commission", Icon: Calculator },
-  { key: "tasks", label: "Tasks", Icon: ListChecks },
-  { key: "consultants", label: "Consultants", Icon: UserCog },
-  { key: "settings", label: "Settings", Icon: Settings },
+const navItems: NavItem[] = [
+  { to: "/", label: "Dashboard", Icon: LayoutDashboard, match: (p) => p === "/" },
+  { to: "/leads", label: "Leads", Icon: Users, match: (p) => p.startsWith("/leads") },
+  { to: "/funders", label: "Funders", Icon: Building2, match: (p) => p.startsWith("/funders") },
+  { to: "/calendar", label: "Calendar", Icon: Calendar, match: (p) => p.startsWith("/calendar") },
+  { to: "/commission", label: "Commission", Icon: Calculator, match: (p) => p.startsWith("/commission") },
+  { to: "/tasks", label: "Tasks", Icon: ListChecks, match: (p) => p.startsWith("/tasks") },
+  { to: "/consultants", label: "Consultants", Icon: UserCog, match: (p) => p.startsWith("/consultants") },
+  { to: "/settings", label: "Settings", Icon: Settings, match: (p) => p.startsWith("/settings") },
 ];
 
 function initialsFrom(nameOrEmail: string): string {
@@ -43,7 +41,7 @@ function initialsFrom(nameOrEmail: string): string {
 }
 
 export function Sidebar() {
-  const [active, setActive] = useState<NavKey>("dashboard");
+  const location = useLocation();
   const { profile, user, signOut } = useAuth();
 
   const displayName =
@@ -75,12 +73,12 @@ export function Sidebar() {
       <div className="fnc-divider" />
 
       <nav className="flex-1 space-y-1 px-3 py-4">
-        {navItems.map(({ key, label, Icon }) => {
-          const isActive = active === key;
+        {navItems.map(({ to, label, Icon, match }) => {
+          const isActive = match(location.pathname);
           return (
-            <button
-              key={key}
-              onClick={() => setActive(key)}
+            <Link
+              key={to}
+              to={to}
               className={cn(
                 "group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
                 isActive
@@ -98,7 +96,7 @@ export function Sidebar() {
               {isActive && (
                 <span className="ml-auto h-1.5 w-1.5 rounded-full bg-fnc-teal-bright" />
               )}
-            </button>
+            </Link>
           );
         })}
       </nav>

@@ -14,7 +14,7 @@ Build a production-grade web application for **Fund Now Capital (Pty) Ltd** — 
 - Commission calculator (all 13 funders, all rules)
 - Calendar, tasks, follow-up reminders
 - Personal referral tracking (Marketing iO consultants)
-- Email integration (info@fundnowcapital.africa, tmaupa@fundnowcapital.africa)
+- Email integration (info@fundnowcapital.africa, thapelol@fundnowcapital.africa)
 
 **B. Client Portal (Self-service for FNC clients)**
 - Sign-up with OTP (SMS + email)
@@ -597,7 +597,7 @@ When admin clicks "Submit to Funder" on a lead:
 - Pre-fills subject: `New Application — [Business Name] — R[Amount] — [Funding Type]`
 - Body lists every attached document with checkmark
 - Includes shareable secure link (signed URL, 7-day expiry) to the document pack on Supabase Storage
-- Sender: tmaupa@fundnowcapital.africa
+- Sender: thapelol@fundnowcapital.africa
 - CCs: info@fundnowcapital.africa
 
 ### 9.2 Client welcome email

@@ -84,7 +84,7 @@ export function Login() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="mt-2 h-11 w-full rounded-lg border border-fnc-border bg-fnc-dark px-3 text-sm text-fnc-text placeholder:text-fnc-text-muted focus:border-fnc-teal focus:outline-none focus:ring-1 focus:ring-fnc-teal"
-              placeholder="tmaupa@fundnowcapital.africa"
+              placeholder="thapelol@fundnowcapital.africa"
             />
           </div>
 

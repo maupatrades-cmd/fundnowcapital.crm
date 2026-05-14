@@ -1,3 +1,4 @@
+import { useLocation } from "react-router-dom";
 import { Bell, Search } from "lucide-react";
 
 function formatSAST(date: Date): string {
@@ -10,7 +11,23 @@ function formatSAST(date: Date): string {
   }).format(date);
 }
 
-export function Topbar({ title }: { title: string }) {
+function titleFromPath(pathname: string): string {
+  if (pathname === "/") return "Dashboard";
+  if (pathname.startsWith("/leads/new")) return "Add Lead";
+  if (pathname.startsWith("/leads/")) return "Lead Detail";
+  if (pathname.startsWith("/leads")) return "Leads";
+  if (pathname.startsWith("/funders")) return "Funders";
+  if (pathname.startsWith("/calendar")) return "Calendar";
+  if (pathname.startsWith("/commission")) return "Commission";
+  if (pathname.startsWith("/tasks")) return "Tasks";
+  if (pathname.startsWith("/consultants")) return "Consultants";
+  if (pathname.startsWith("/settings")) return "Settings";
+  return "Fund Now Capital";
+}
+
+export function Topbar() {
+  const location = useLocation();
+  const title = titleFromPath(location.pathname);
   const today = formatSAST(new Date());
 
   return (
