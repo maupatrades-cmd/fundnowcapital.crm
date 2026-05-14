@@ -89,7 +89,7 @@ export function Sidebar() {
             <span className="text-sm font-semibold">TL</span>
           </div>
           <div className="min-w-0 flex-1 leading-tight">
-            <div className="truncate text-sm text-fnc-text">Thapelo Lekgoro</div>
+            <div className="truncate text-sm text-fnc-text">Thapelo Maupa</div>
             <div className="truncate text-xs text-fnc-text-muted">Admin</div>
           </div>
           <button

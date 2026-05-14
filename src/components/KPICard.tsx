@@ -5,11 +5,13 @@ export function KPICard({
   value,
   hint,
   Icon,
+  loading = false,
 }: {
   label: string;
   value: string;
   hint?: string;
   Icon: LucideIcon;
+  loading?: boolean;
 }) {
   return (
     <div className="rounded-xl border border-fnc-border bg-fnc-dark-card p-5">
@@ -19,7 +21,11 @@ export function KPICard({
           <Icon className="h-4 w-4" />
         </div>
       </div>
-      <div className="mt-4 font-serif text-3xl text-fnc-text">{value}</div>
+      {loading ? (
+        <div className="mt-4 h-9 w-24 animate-pulse rounded bg-white/5" />
+      ) : (
+        <div className="mt-4 font-serif text-3xl text-fnc-text">{value}</div>
+      )}
       {hint && <div className="mt-1 text-xs text-fnc-text-muted">{hint}</div>}
     </div>
   );

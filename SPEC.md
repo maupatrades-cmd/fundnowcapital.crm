@@ -7,14 +7,14 @@
 
 Build a production-grade web application for **Fund Now Capital (Pty) Ltd** — a South African alternative business funding brokerage (CIPC: 2026/066284/07). The application has TWO surfaces:
 
-**A. Internal CRM (Admin — Thapelo Lekgoro, sole user for now)**
+**A. Internal CRM (Admin — Thapelo Maupa, sole user for now)**
 - Lead capture & management
 - Per-client document vault
 - Funder routing & submission tracking
 - Commission calculator (all 13 funders, all rules)
 - Calendar, tasks, follow-up reminders
 - Personal referral tracking (Marketing iO consultants)
-- Email integration (info@fundnowcapital.africa, tlekgoro@fundnowcapital.africa)
+- Email integration (info@fundnowcapital.africa, tmaupa@fundnowcapital.africa)
 
 **B. Client Portal (Self-service for FNC clients)**
 - Sign-up with OTP (SMS + email)
@@ -597,7 +597,7 @@ When admin clicks "Submit to Funder" on a lead:
 - Pre-fills subject: `New Application — [Business Name] — R[Amount] — [Funding Type]`
 - Body lists every attached document with checkmark
 - Includes shareable secure link (signed URL, 7-day expiry) to the document pack on Supabase Storage
-- Sender: tlekgoro@fundnowcapital.africa
+- Sender: tmaupa@fundnowcapital.africa
 - CCs: info@fundnowcapital.africa
 
 ### 9.2 Client welcome email
